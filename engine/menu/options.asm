@@ -246,6 +246,9 @@ DrawOptionsPage:
 	ld l, c
 	inc hl
 	ld [hl], "▶"
+	; fall through
+; every option's row, with its value as it is now
+DrawOptionRows:
 	call GetOptionCount
 	ld c, a
 	xor a
@@ -397,9 +400,7 @@ ChangeOption:
 	call CurrentOptionEntry
 	pop af
 	call SetOptionValue
-	ld a, [wOptionsRow]
-	dec a
-	call DrawOption
+	call DrawOptionRows ; a setter can change another option (DOORS and KEY ITEMS)
 	and a
 	ret
 .action

@@ -79,9 +79,18 @@ START_MONEY EQU $3000
 	ld [hli], a
 	ld [hl], a
 
+	ld a, [wRandoFlags2] ; the randomizer's choices are made before NEW GAME,
+	push af              ; but live among the progress flags
+	ld a, [wRandoFlags3]
+	push af
 	ld hl, wGameProgressFlags
 	ld bc, wGameProgressFlagsEnd - wGameProgressFlags
+	xor a
 	call FillMemory ; clear all game progress flags
+	pop af
+	ld [wRandoFlags3], a
+	pop af
+	ld [wRandoFlags2], a
 
 	jp InitializeMissableObjectsFlags
 
