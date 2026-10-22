@@ -108,6 +108,7 @@ GetPrizeMenuId:
 	jr .putNoThanksText
 .putMonName
 	predef randomMonPrizes	;joenote - randomize the game corner pokemon prizes
+	callba RandoPrizes ; SPECIAL MON
 	ld a, [wPrize1]
 	ld [wd11e], a
 	call GetMonName
@@ -200,7 +201,11 @@ HandlePrizeChoice:
 	cp 2 ; is prize a TM?
 	jr nz, .getMonName
 	call GetItemName
-	jr .givePrize
+	ld a, [wd11e]
+	call CheckMachineOwned ; a TM is owned for good: one is enough
+	jr z, .givePrize
+	ld hl, AlreadyOwnMachineTextPtr
+	jp PrintText
 .getMonName
 	call GetMonName
 .givePrize
@@ -281,6 +286,11 @@ SorryNeedMoreCoinsText:
 
 PrizeRoomBagIsFullTextPtr:
 	TX_FAR _OopsYouDontHaveEnoughRoomText
+	TX_WAIT
+	db "@"
+
+AlreadyOwnMachineTextPtr:
+	TX_FAR _AlreadyOwnMachineText
 	TX_WAIT
 	db "@"
 

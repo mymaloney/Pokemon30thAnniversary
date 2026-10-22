@@ -57,11 +57,6 @@ _ExclamationText::
 	text "!"
 	done
 
-_GroundRoseText::
-	text "Ground rose up"
-	line "somewhere!"
-	done
-
 _BoulderText::
 	text "This requires"
 	line "STRENGTH to move!"
@@ -99,7 +94,7 @@ _OaksAideHiText::
 	text ""
 	line "kinds of #MON,"
 	cont "I'm supposed to"
-	cont "give you an"
+	cont "give you the"
 	cont "@"
 	TX_RAM wOaksAideRewardItemName
 	text "!"
@@ -229,11 +224,6 @@ SECTION "Text 3", ROMX, BANK[TEXT_3]
 INCLUDE "text/maps/rock_tunnel_b2f_2.asm"
 INCLUDE "text/maps/seafoam_islands_b4f.asm"
 
-IF DEF(_MOVENPCS)
-;joenote - adding Mateo's move relearner/deleter files
-INCLUDE "text/move_deleter.asm"
-INCLUDE "text/move_relearner.asm"
-ENDC
 
 _AIBattleWithdrawText::
 	TX_RAM wTrainerName
@@ -1110,10 +1100,11 @@ _EnemyMonFaintedText::
 	prompt
 
 _MoneyForWinningText::
-	text "<PLAYER> got ¥@"
+	text "<PLAYER> got"
+	line "¥@"
 	TX_BCD wAmountMoneyWon, 3 | LEADING_ZEROES | LEFT_ALIGN
 	text ""
-	line "for winning!"
+	cont "for winning!"
 	prompt
 
 _TrainerDefeatedText::
@@ -1252,6 +1243,11 @@ _IsFrozenText::
 	line "is frozen solid!"
 	prompt
 
+_ThawedOutText::
+	text "<USER>"
+	line "thawed out!"
+	prompt
+
 _FullyParalyzedText::
 	text "<USER>'s"
 	line "fully paralyzed!"
@@ -1302,10 +1298,13 @@ _ThrashingAboutText::
 	line "thrashing about!"
 	done
 
-_AttackContinuesText::
+_HurtByBindingText::
 	text "<USER>'s"
-	line "attack continues!"
-	done
+	line "hurt by"
+	cont "@"
+	TX_RAM wcd6d
+	text "!"
+	prompt
 
 _CantMoveText::
 	text "<USER>"
@@ -1469,6 +1468,12 @@ _ExpPointsText::
 	text " EXP. Points!"
 	prompt
 
+_TeamGainedExpText::
+	text "The rest of your"
+	line "team gained EXP."
+	cont "Points too!"
+	prompt
+
 _GrewLevelText::
 	TX_RAM wcd6d
 	text " grew"
@@ -1604,11 +1609,6 @@ _PartyMenuItemUseText::
 _PartyMenuBattleText::
 	text "Bring out which"
 	line "#MON?"
-	done
-
-_PartyMenuUseTMText::
-	text "Use machine on"	;joenote - HMs use this, so made it generic
-	line "which #MON?"
 	done
 
 _PartyMenuSwapMonText::
@@ -1887,6 +1887,10 @@ _SorryNeedMoreCoinsText::
 _OopsYouDontHaveEnoughRoomText::
 	text "Oops! You don't"
 	line "have enough room.@@"
+
+_AlreadyOwnMachineText::
+	text "You already have"
+	line "that one!@@"
 
 _OhFineThenText::
 	text "Oh, fine then.@@"
@@ -2292,13 +2296,16 @@ _HitWithRecoilText::
 	prompt
 
 _ConvertedTypeText::
-	text "Converted type to"
-	line "<TARGET>'s!"
+	text "<USER>'s"
+	line "type became"
+	cont "@"
+	TX_RAM wcd6d
+	text "!"
 	prompt
 
 _StatusChangesEliminatedText::
-	text "All STATUS changes"
-	line "are eliminated!"
+	text "All stat changes"
+	line "were eliminated!"
 	prompt
 
 _StartedSleepingEffect::
@@ -2482,6 +2489,23 @@ _PlayerBlackedOutText::
 _RepelWoreOffText::
 	text "REPEL's effect"
 	line "wore off."
+	done
+
+_RepelUseAnotherText::
+	text "REPEL's effect"
+	line "wore off."
+
+	para "Use another"
+	line "@"
+	TX_RAM wcd6d
+	text "?"
+	done
+
+_RepelUsedAnotherText::
+	text "<PLAYER> used"
+	line "@"
+	TX_RAM wcd6d
+	text "!"
 	done
 
 _PokemartBuyingGreetingText::
@@ -2764,7 +2788,7 @@ _SetToBoxText::
 	text "There's no more"
 	line "room for #MON!"
 	cont "@"
-	TX_RAM wBoxMonNicks
+	TX_RAM wcd6d
 	text " was"
 	cont "sent to #MON"
 	cont "BOX @"
@@ -2841,14 +2865,14 @@ _ItemUseBallText05::
 	cont "caught!@@"
 
 _ItemUseBallText07::
-	TX_RAM wBoxMonNicks
+	TX_RAM wcd6d
 	text " was"
 	line "transferred to"
 	cont "BILL's PC!"
 	prompt
 
 _ItemUseBallText08::
-	TX_RAM wBoxMonNicks
+	TX_RAM wcd6d
 	text " was"
 	line "transferred to"
 	cont "someone's PC!"
@@ -2955,40 +2979,6 @@ _PPIncreasedText::
 
 _PPRestoredText::
 	text "PP was restored."
-	prompt
-
-_BootedUpTMText::
-	text "Booted up a TM!"
-	prompt
-
-_BootedUpHMText::
-	text "Booted up an HM!"
-	prompt
-
-_TeachMachineMoveText::
-	text "It contained"
-	line "@"
-	TX_RAM wcf4b
-	text "!"
-
-	para "Teach @"
-	TX_RAM wcf4b
-	text ""
-	line "to a #MON?"
-	done
-
-_MonCannotLearnMachineMoveText::
-	TX_RAM wcd6d
-	text " is not"
-	line "compatible with"
-	cont "@"
-	TX_RAM wcf4b
-	text "."
-
-	para "It can't learn"
-	line "@"
-	TX_RAM wcf4b
-	text "."
 	prompt
 
 _ItemUseNotTimeText::
@@ -3265,6 +3255,11 @@ _RomHackVersionText::
 
 _RematchTrainerText::
 	text "Offer a rematch?"
+	done
+
+_BlackoutReturnText::
+	text "Return to where"
+	line "you blacked out?"
 	done
 
 SECTION "Pokedex Text", ROMX, BANK[POKEDEX_TEXT]

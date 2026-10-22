@@ -1,3 +1,15 @@
+;the Mew-to-Ditto swap alone, without marking Mew as met, so a repel judges
+;the mon that would really appear (WildRepelCheck)
+ReplaceDisallowedWildMew:
+	ld a, [wcf91]
+	cp MEW
+	ret nz
+	CheckEvent EVENT_90B
+	jr z, DisallowWildMew.replace_mew
+	CheckEvent EVENT_8C0
+	ret z
+	jr DisallowWildMew.replace_mew
+
 ;replace random mew encounters with ditto if dex diploma not attained
 DisallowWildMew:
 	ld a, [wcf91]	;get the current pokemon in question
@@ -171,7 +183,7 @@ GetWeightedLevel:
 	push bc
 	push de
 	
-	ld hl, wBoxDataEnd+5	;need 6 bytes of working space
+	ld hl, wWeightedLevelScratch+5	;need 6 bytes of working space
 	
 	ld de, wStartBattleLevels
 	ld a, [wPartyCount]
@@ -596,75 +608,3 @@ EnemyMonEvolve:
 	ret
 	
 
-;joenote - take the 'mon in wcf91, find its previous evolution, and put it back in wcf91
-DevolveMon:	
-	ld hl, EvosMovesPointerTable
-.nextmonloop
-	ld de, wEvosMoves
-	ld a, BANK(EvosMovesPointerTable)
-	ld bc, 2
-	call FarCopyData	;switches banks, then copies the 2-byte address that HL points to into wEvosMoves
-	;note, HL is now already incremented
-	ld a, [wEvosMoves + 1]
-	cp $FF
-	ret z	;return if reached end of evolution pointer list
-
-	push hl
-	ld hl, wEvosMoves	;let's now point HL to said address
-	ld a, [hli]
-	ld h, [hl]
-	ld l, a				;HL now points to the address of the pokemon's evolution list
-
-	ld de, wEvosMoves
-	ld a, BANK(EvosMovesPointerTable)
-	ld bc, wEvosMoves.end - wEvosMoves
-	call FarCopyData	;now copy the evolution list pointed to by HL into wEvosMoves
-	
-	ld hl, wEvosMoves	;we can now reference the evolution list by pointing HL to it
-	call .evosloop
-	pop hl
-	jr nz, .nextmonloop
-	
-	ld bc, 0 - EvosMovesPointerTable
-	add hl, bc
-	srl h
-	rr l
-	ld a, l
-	ld [wcf91], a
-	ret
-	
-.evosloop
-	ld a, [hli]
-	and a
-	jr z, .notfound
-	cp EV_ITEM
-	jr nz, .not_item
-	inc hl
-.not_item
-	inc hl
-	ld a, [wcf91]
-	ld b, a
-	ld a, [hli]
-	cp b
-	jr nz, .evosloop
-	ret
-.notfound
-	ld a, 1
-	and a
-	ret
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	

@@ -11,19 +11,38 @@ MAX_LEVEL EQU 100
 ENCOUNTER_TILE_COORD_X EQU 8
 ENCOUNTER_TILE_COORD_Y EQU 9
 
-NUM_FIELD_MOVES     EQU 5
+NUM_FIELD_MOVES     EQU 4 ; as many as fit above STATS, MOVES, SWITCH and CANCEL
+TAKE_ITEM_MENU_ENTRY EQU 10 ; after the field moves in FieldMoveNames
 
 NUM_MOVES     EQU 4
-NUM_STATS     EQU 5
+NUM_STATS     EQU 6 ; HP, attack, defense, speed, special attack, special defense
 NUM_STAT_MODS EQU 8
-NUM_DVS       EQU 2
+NUM_IVS       EQU 4 ; bytes: six 5-bit IVs, then the flags below (engine/ivs.asm)
+IV_FLAGS      EQU NUM_IVS - 1 ; the byte with them
+ABILITY_SLOT_F EQU 0
+MAX_EV        EQU 252 ; per stat
+MAX_TOTAL_EVS EQU 510
+SHINY_IV_BITS EQU %10 ; every IV's low two bits, for a shiny
+EVO_SCRATCH_LENGTH EQU 3 * 4 + 1 ; Eevee's three evolutions and the 0
+
+; how GenerateIVs rolls (wIVGenMode)
+IVGEN_HARD_F  EQU 0 ; hard mode rerolls IVs under 8 once (wild mons)
+IVGEN_BIAS_F  EQU 1 ; the better of two rolls; bosses' mons get IVGEN_MIN16_F
+IVGEN_MIN16_F EQU 2 ; 16 or more (gifts)
+IVGEN_SHINY_F EQU 3
 
 PARTY_LENGTH EQU 6
 
 MONS_PER_BOX EQU 20
 NUM_BOXES    EQU 12
 
-BAG_ITEM_CAPACITY EQU 20
+BAG_ITEM_CAPACITY EQU 36 ; one bag (Shin had two of 20), shown by pocket; TMs and HMs aren't in it
+NUM_TMS EQU 50
+NUM_HMS EQU 5
+NUM_MACHINES EQU NUM_TMS + NUM_HMS
+
+MAX_MOVE_CHOICES EQU 96 ; the MOVES screen's list: a learnset, 4 starting moves, every TM and HM
+MOVES_LEARNSET_LENGTH EQU 64 ; the longest evolutions-and-learnset entry fits (tests/test_moves_screen.py)
 PC_ITEM_CAPACITY  EQU 50
 
 HOF_MON           EQU $10
@@ -31,6 +50,9 @@ HOF_TEAM          EQU PARTY_LENGTH * HOF_MON
 HOF_TEAM_CAPACITY EQU 50
 
 NAME_LENGTH EQU 11
+; a day-care mon's nickname, OT name and box struct, kept together in save RAM
+DAY_CARE_DATA_LENGTH EQU 2 * NAME_LENGTH + 13 + NUM_STATS + NUM_IVS + NUM_MOVES * 2
+DAY_CARE_SLOTS EQU 2
 ITEM_NAME_LENGTH EQU 13
 
 A_BUTTON EQU %00000001
@@ -134,7 +156,7 @@ SLOTSMOUSE  EQU $1614
 NORMAL_PARTY_MENU    EQU 0
 USE_ITEM_PARTY_MENU  EQU 1
 BATTLE_PARTY_MENU    EQU 2
-TMHM_PARTY_MENU      EQU 3
+; 3 was the TM menu: TMs are taught on the MOVES screen
 SWAP_MONS_PARTY_MENU EQU 4
 EVO_STONE_PARTY_MENU EQU 5
 
@@ -153,6 +175,7 @@ RARE_CANDY_MSG   EQU $F8
 NAME_PLAYER_SCREEN EQU 0
 NAME_RIVAL_SCREEN  EQU 1
 NAME_MON_SCREEN    EQU 2
+NAME_SEED_SCREEN   EQU 3 ; the randomizer's seed (10 letters, like a nickname)
 
 ; mon data locations
 ; Note that some values are not supported by all functions that use these values.
@@ -233,7 +256,9 @@ PAL_SIZE EQU NUM_COLORS * 2
 NUM_ACTIVE_PALS EQU 4
 
 ;joenote - catch rate given to pokemon marked as dead for nuzlocke mode
-DEAD EQU $05
+; nuzlocke mode: a dead mon has this bit set in its IVs' flags byte (IV_FLAGS;
+; the catch-rate byte, which held the old mark, is the held item)
+NUZLOCKE_DEAD_F EQU 1
 
 ; wOptions
 DEF TEXT_DELAY_FAST   		EQU %00000001	; 1
@@ -250,4 +275,38 @@ DEF BIT_BATTLE_NOSWITCH		EQU 3		  	; bit 3
 DEF BATTLE_NOSWITCH  		EQU %00001000	; bit 3
 DEF BIT_ENH_GBC_COLORS		EQU 7		  	; bit 7
 DEF ENH_GBC_COLORS  		EQU %10000000	; bit 7
+; wDisplayOptions
+DEF BIT_GEN2_SPRITES		EQU 0			; Crystal's pics (engine/gen2_pics.asm)
+DEF TYPE_HINT_MASK		EQU %00000110	; the move menu's effectiveness marks (engine/battle/type_chart.asm):
+DEF TYPE_HINT_ON		EQU %00000010	; always
+DEF TYPE_HINT_LEARNED	EQU %00000100	; for the matchups wTypeChartSeen has
+DEF BIT_HP_PERCENT		EQU 3			; the foe's HP as a percentage (engine/battle/hp_percent.asm)
+DEF HP_PERCENT_TILE		EQU $D0			; its two tiles, $D0 and $D1
 
+; the type chart's rows and columns: NORMAL to STEEL ($00-$09, BIRD's unused
+; slot included), then FIRE to FAIRY ($14-$1C)
+DEF NUM_CHART_TYPES		EQU 19
+DEF GEN2_PIC_HEADER_LENGTH	EQU 6			; Gen2PicHeaders' entries
+
+
+; wRandoFlags: what the randomizer shuffles (engine/rando/)
+RANDO_DOORS_F  EQU 0 ; the doors (and so the key items too)
+RANDO_KEYS_F   EQU 1 ; where the key items are
+RANDO_ITEMS_F  EQU 2 ; the other items on the ground and given
+RANDO_MARTS_F  EQU 3 ; what the marts sell
+RANDO_SEEDED_F EQU 7 ; a seed was given: wild and trainer #MON follow it
+RANDO_WORLD    EQU (1 << RANDO_DOORS_F) | (1 << RANDO_KEYS_F) | (1 << RANDO_ITEMS_F)
+
+; wRandoFlags2: the randomizer's #MON
+RANDO2_STARTERS    EQU %11  ; 0 off, 1 random lines, 2 lines whose types beat each other in turn
+RANDO2_STARTERS_F  EQU 0
+RANDO2_SPECIAL_F   EQU 2    ; gift, legendary and other one-off #MON
+RANDO2_TRADES_F    EQU 3    ; in-game trades
+RANDO2_TRAINERS_F  EQU 4    ; RANDOM TRNR ALL: every trainer, themes kept
+RANDO2_WILD_AREA_F EQU 5    ; RANDOM WILD AREA: each encounter slot its own
+; wRandoFlags3: moves
+RANDO3_TM_MOVES_F  EQU 0    ; what each TM teaches (HMs stay)
+RANDO3_TM_COMPAT   EQU %110 ; 0 off, 1 by type, 2 random, 3 every #MON
+RANDO3_TM_COMPAT_F EQU 1
+RANDO3_LEARN       EQU %11000 ; 0 off, 1 by type, 2 random, 3 METRONOME only
+RANDO3_LEARN_F     EQU 3

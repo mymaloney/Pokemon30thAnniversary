@@ -40,6 +40,9 @@ EnterMap::
 	set 6, [hl]
 	xor a
 	ld [wJoyIgnore], a
+;after blacking out, offer to return to where the player blacked out
+	callba BlackoutReturnPrompt
+	jp c, EnterMap ; reload the map at the position where the player blacked out
 
 OverworldLoop::
 	;call DelayFrame	;60fps
@@ -496,6 +499,7 @@ WarpFound2::
 	ld [wWarpedFromWhichWarp], a ; save ID of used warp
 	ld a, [wCurMap]
 	ld [wWarpedFromWhichMap], a
+	callba RandoWarp ; a shuffled door leads elsewhere
 	call CheckIfInOutsideMap
 	jr nz, .indoorMaps
 ; this is for handling "outside" maps that can't have the 0xFF destination map
