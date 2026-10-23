@@ -129,7 +129,7 @@ Every option starts as the original game played; everything extra is off by defa
 - Title screen: "Red 30th Anniversary" (Blue and Green in those builds) under the logo, in the original "Red Version" lettering; main menu shows version 0.9.0.
 
 #### Randomizer
-- Options on the RANDOMIZER and RANDOM POKéMON pages, all off by default, set from the title screen before NEW GAME (from the start menu they only show).
+- Options on the RANDOMIZER and RANDOM POKéMON pages, all off by default, set from the title screen before NEW GAME.
 - DOORS: every door and staircase is shuffled, two-way (outside doors with insides, stairs with stairs). Red's house, Oak's lab, the Viridian mart (Oak's Parcel), the elevators and the Elite Four to Hall of Fame chain stay put; the S.S. Anne, Safari Zone, Silph Co., Rocket Hideout, Victory Road, Seafoam Islands and Pokémon Mansion keep their insides, with only their ways out shuffled.
 - KEY ITEMS: key items and HMs are shuffled among item balls and gifts (DOORS turns it on). Badges are not shuffled. Hidden items and the Pokédex-count aides never hold key items.
 - ITEMS: the other items in balls, hidden spots and gifts are shuffled, and each species' wild held items are another species'.
